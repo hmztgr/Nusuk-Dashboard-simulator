@@ -1,28 +1,37 @@
 """
 Compute dashboard metrics as of a given date.
 All pipeline metrics are calculated by filtering date columns <= as_of_date.
+Results are cached by (date, filters) to avoid redundant computation during animation.
 """
 
+import streamlit as st
 import pandas as pd
 import numpy as np
 
 
-def compute_metrics(df, as_of_date, person_type_filter=None, nationality_filter=None, provider_filter=None):
+def compute_metrics(df, as_of_date, person_type_filter=None, nationality_filter=None,
+                    provider_filter=None, b2b_b2c_filter=None):
     """
     Compute all dashboard metrics as of a specific date.
-
-    Parameters:
-        df: Full DataFrame
-        as_of_date: datetime - metrics computed as of this date
-        person_type_filter: list or None - filter by person types
-        nationality_filter: list or None - filter by nationalities
-        provider_filter: list or None - filter by service providers
-
-    Returns:
-        dict with all computed metrics
+    Wraps the cached implementation, converting lists to hashable tuples.
     """
-    # Apply filters (no .copy() needed — we only read, never mutate)
+    return _compute_metrics_cached(
+        df, as_of_date,
+        tuple(person_type_filter) if person_type_filter else None,
+        tuple(nationality_filter) if nationality_filter else None,
+        tuple(provider_filter) if provider_filter else None,
+        b2b_b2c_filter,
+    )
+
+
+@st.cache_data(hash_funcs={pd.DataFrame: id}, max_entries=500)
+def _compute_metrics_cached(df, as_of_date, person_type_filter, nationality_filter,
+                            provider_filter, b2b_b2c_filter):
+    """Cached implementation — only recomputes when parameters change."""
     filtered = df
+
+    if b2b_b2c_filter:
+        filtered = filtered[filtered["b2b_b2c"] == b2b_b2c_filter]
 
     if person_type_filter and len(person_type_filter) > 0:
         filtered = filtered[filtered["person_type"].isin(person_type_filter)]
@@ -141,8 +150,9 @@ def compute_metrics_by_type(df, as_of_date):
     return results
 
 
+@st.cache_data(hash_funcs={pd.DataFrame: id}, max_entries=100)
 def compute_provider_metrics(df, as_of_date):
-    """Compute metrics per service provider."""
+    """Compute metrics per service provider (cached)."""
     as_of = pd.Timestamp(as_of_date)
     providers = df["service_provider"].dropna().unique()
     rows = []
@@ -164,8 +174,9 @@ def compute_provider_metrics(df, as_of_date):
         # Avg delivery days (provider_date to received_date)
         valid_mask = prov_df["card_received_date"].notna() & prov_df["card_at_provider_date"].notna()
         if valid_mask.sum() > 0:
-            prov_dates = pd.to_datetime(prov_df.loc[valid_mask, "card_at_provider_date"])
-            recv_dates = pd.to_datetime(prov_df.loc[valid_mask, "card_received_date"])
+            # Dates are already datetime from load_data()
+            prov_dates = prov_df.loc[valid_mask, "card_at_provider_date"]
+            recv_dates = prov_df.loc[valid_mask, "card_received_date"]
             avg_days = (recv_dates - prov_dates).dt.days.mean()
         else:
             avg_days = 0

@@ -61,9 +61,8 @@ with col_c4:
     if not health_df.empty:
         bins = [0, 30, 40, 50, 60, 65, 70, 75, 80, 100]
         labels = ["<30", "30-39", "40-49", "50-59", "60-64", "65-69", "70-74", "75-79", "80+"]
-        hdf = health_df.copy()
-        hdf["age_group"] = pd.cut(hdf["age"], bins=bins, labels=labels, right=False)
-        age_inc = hdf["age_group"].value_counts().sort_index()
+        age_groups = pd.cut(health_df["age"], bins=bins, labels=labels, right=False)
+        age_inc = age_groups.value_counts().sort_index()
         fig = go.Figure(go.Bar(x=age_inc.index.astype(str), y=age_inc.values,
             marker_color=[NUSUK_COLORS["gold"] if i < 4 else NUSUK_COLORS["yellow"] if i < 6 else NUSUK_COLORS["red_light"] for i in range(len(age_inc))],
             text=age_inc.values, textposition="auto"))

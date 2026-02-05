@@ -71,7 +71,7 @@ fig = go.Figure()
 for i, nat in enumerate(top5):
     nat_arr = arrived[arrived["nationality"] == nat]
     if not nat_arr.empty:
-        daily = pd.to_datetime(nat_arr["arrival_date"]).dt.date.value_counts().sort_index()
+        daily = nat_arr["arrival_date"].dt.date.value_counts().sort_index()
         fig.add_trace(go.Scatter(x=daily.cumsum().index, y=daily.cumsum().values,
             name=nat, line=dict(color=colors[i % len(colors)], width=2)))
 

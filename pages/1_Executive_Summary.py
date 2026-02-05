@@ -20,7 +20,13 @@ if df is None:
 
 as_of_date = filters.get("as_of_date")
 
-# Apply filters (no .copy() needed — filtering creates new DataFrames)
+# Metrics are cached by (date, filters) — avoids recomputation during animation
+m = compute_metrics(df, as_of_date,
+    person_type_filter=filters.get("person_types"),
+    nationality_filter=filters.get("nationalities"),
+    provider_filter=filters.get("providers"))
+
+# Filtered df still needed for chart functions
 filtered_df = df
 if filters.get("person_types"):
     filtered_df = filtered_df[filtered_df["person_type"].isin(filters["person_types"])]
@@ -28,8 +34,6 @@ if filters.get("nationalities"):
     filtered_df = filtered_df[filtered_df["nationality"].isin(filters["nationalities"])]
 if filters.get("providers"):
     filtered_df = filtered_df[filtered_df["service_provider"].isin(filters["providers"])]
-
-m = compute_metrics(filtered_df, as_of_date)
 
 # ── Header ─────────────────────────────────────────────────────────────────
 st.markdown(f'<div class="nusuk-header"><h2>{t("page_executive_summary")}</h2></div>', unsafe_allow_html=True)

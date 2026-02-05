@@ -27,13 +27,12 @@ b2b_b2c = st.radio(
           if lang == "ar" else
           "B2B: Pilgrims via authorized travel companies | B2C: Direct registration on Nusuk"),
 )
-df_filtered = df[df["b2b_b2c"] == b2b_b2c]
 
 # ── Header ─────────────────────────────────────────────────────────────────
 st.markdown(f'<div class="nusuk-header"><h2>{t("page_card_pipeline")}</h2></div>', unsafe_allow_html=True)
 
-# ── Overall Metrics ────────────────────────────────────────────────────────
-m = compute_metrics(df_filtered, as_of_date)
+# ── Overall Metrics (cached — pass filter params instead of pre-filtered df) ──
+m = compute_metrics(df, as_of_date, b2b_b2c_filter=b2b_b2c)
 
 # ── Top Alert Bar ──────────────────────────────────────────────────────────
 st.markdown(f"""
@@ -127,8 +126,7 @@ for ptype, label, show_g in [
     ("service_worker", "العاملين" if lang == "ar" else "Service Workers", False),
 ]:
     st.divider()
-    ptype_df = df_filtered[df_filtered["person_type"] == ptype]
-    pm = compute_metrics(ptype_df, as_of_date)
+    pm = compute_metrics(df, as_of_date, person_type_filter=[ptype], b2b_b2c_filter=b2b_b2c)
     _pipeline_row(pm, label, show_g)
 
 # ── Reload timestamp ──────────────────────────────────────────────────────

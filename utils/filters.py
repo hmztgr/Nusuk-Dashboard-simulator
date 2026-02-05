@@ -156,8 +156,8 @@ def render_sidebar(df):
 
 def animate_slider():
     """Trigger a rerun to keep the animation going.
-    Uses 1.0s sleep for Streamlit Cloud reliability.
+    Uses 2.0s sleep to reduce memory pressure on Streamlit Cloud.
     """
     if st.session_state.get("playing", False):
-        time.sleep(1.0)
+        time.sleep(2.0)
         st.rerun()
