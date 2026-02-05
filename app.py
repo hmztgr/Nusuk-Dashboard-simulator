@@ -192,7 +192,7 @@ df = load_data()
 st.session_state["df"] = df
 
 # ── Sidebar ────────────────────────────────────────────────────────────────
-from utils.filters import render_sidebar, animate_slider
+from utils.filters import render_sidebar, animation_tick
 from utils.i18n import t
 
 filters = render_sidebar(df)
@@ -222,5 +222,5 @@ nav = st.navigation([
 ])
 nav.run()
 
-# Animation: rerun AFTER page has fully rendered so user sees updated numbers
-animate_slider()
+# Animation: fragment auto-reruns every 1s; triggers full rerun only when playing
+animation_tick()
