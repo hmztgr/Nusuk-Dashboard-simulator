@@ -192,7 +192,7 @@ df = load_data()
 st.session_state["df"] = df
 
 # ── Sidebar ────────────────────────────────────────────────────────────────
-from utils.filters import render_sidebar, animation_tick
+from utils.filters import render_sidebar, animate_slider
 from utils.i18n import t
 
 filters = render_sidebar(df)
@@ -222,5 +222,5 @@ nav = st.navigation([
 ])
 nav.run()
 
-# Animation: fragment auto-reruns every 1s; triggers full rerun only when playing
-animation_tick()
+# Animation: sleep-based rerun loop (1s interval for Cloud reliability)
+animate_slider()

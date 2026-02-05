@@ -6,6 +6,7 @@ Used across all pages for consistent filtering.
 import streamlit as st
 from datetime import datetime, date, timedelta
 from utils.i18n import t, get_lang
+import time
 
 
 # Season phase presets
@@ -153,18 +154,10 @@ def render_sidebar(df):
     }
 
 
-@st.fragment(run_every=timedelta(seconds=1))
-def animation_tick():
-    """Non-blocking animation using st.fragment auto-rerun.
-
-    Runs every 1s. When playing, advances the date and triggers a full
-    app rerun so all charts update. When not playing, does nothing.
-    Much more reliable on Streamlit Cloud than time.sleep() + st.rerun().
+def animate_slider():
+    """Trigger a rerun to keep the animation going.
+    Uses 1.0s sleep for Streamlit Cloud reliability.
     """
     if st.session_state.get("playing", False):
-        current = st.session_state.get("date_slider", SEASON_START)
-        if current < SEASON_END:
-            st.session_state["date_slider"] = current + timedelta(days=1)
-            st.rerun(scope="app")
-        else:
-            st.session_state["playing"] = False
+        time.sleep(1.0)
+        st.rerun()
