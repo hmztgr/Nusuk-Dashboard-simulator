@@ -98,19 +98,21 @@ if st.button(t("generate_report"), type="primary"):
 st.divider()
 st.subheader("💾 " + t("export_data"))
 
-col_e1, col_e2 = st.columns(2)
-with col_e1:
-    # Limit full export to 50K rows to avoid memory issues on Cloud
-    csv_data = df.head(50000).to_csv(index=False).encode("utf-8-sig")
-    st.download_button(f"📥 {t('export_csv')} ({('كامل' if lang == 'ar' else 'Full')} - 50K)",
-        data=csv_data, file_name="hajj_nusuk_full.csv", mime="text/csv", use_container_width=True)
-
-with col_e2:
-    as_of = pd.Timestamp(as_of_date)
-    filtered = df[df["visa_issue_date"] <= as_of]
-    buffer = BytesIO()
-    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
-        filtered.head(50000).to_excel(writer, index=False, sheet_name="Data")
-    st.download_button(f"📥 {t('export_excel')} ({('حتى التاريخ' if lang == 'ar' else 'To Date')})",
-        data=buffer.getvalue(), file_name=f"hajj_nusuk_{as_of_date}.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", use_container_width=True)
+if st.session_state.get("playing", False):
+    st.info("⏸ " + ("أوقف التشغيل للتحميل" if lang == "ar" else "Stop animation to download"))
+else:
+    col_e1, col_e2 = st.columns(2)
+    with col_e1:
+        # Limit full export to 50K rows to avoid memory issues on Cloud
+        csv_data = df.head(50000).to_csv(index=False).encode("utf-8-sig")
+        st.download_button(f"📥 {t('export_csv')} ({('كامل' if lang == 'ar' else 'Full')} - 50K)",
+            data=csv_data, file_name="hajj_nusuk_full.csv", mime="text/csv", use_container_width=True)
+    with col_e2:
+        as_of = pd.Timestamp(as_of_date)
+        filtered = df[df["visa_issue_date"] <= as_of]
+        buffer = BytesIO()
+        with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+            filtered.head(50000).to_excel(writer, index=False, sheet_name="Data")
+        st.download_button(f"📥 {t('export_excel')} ({('حتى التاريخ' if lang == 'ar' else 'To Date')})",
+            data=buffer.getvalue(), file_name=f"hajj_nusuk_{as_of_date}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", use_container_width=True)

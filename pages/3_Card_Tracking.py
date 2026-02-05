@@ -178,14 +178,15 @@ if lookup_id:
 
 # ── Export ─────────────────────────────────────────────────────────────────
 st.divider()
-col_exp1, col_exp2, _ = st.columns([1, 1, 3])
-
-with col_exp1:
-    csv_data = results[display_cols].head(50000).to_csv(index=False).encode("utf-8-sig")
-    st.download_button(t("export_csv"), data=csv_data, file_name="hajj_card_tracking.csv", mime="text/csv", use_container_width=True)
-
-with col_exp2:
-    buffer = BytesIO()
-    results[display_cols].head(10000).to_excel(buffer, index=False, engine="openpyxl")
-    st.download_button(t("export_excel"), data=buffer.getvalue(), file_name="hajj_card_tracking.xlsx",
-                       mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", use_container_width=True)
+if st.session_state.get("playing", False):
+    st.info("⏸ " + ("أوقف التشغيل للتحميل" if lang == "ar" else "Stop animation to download"))
+else:
+    col_exp1, col_exp2, _ = st.columns([1, 1, 3])
+    with col_exp1:
+        csv_data = results[display_cols].head(50000).to_csv(index=False).encode("utf-8-sig")
+        st.download_button(t("export_csv"), data=csv_data, file_name="hajj_card_tracking.csv", mime="text/csv", use_container_width=True)
+    with col_exp2:
+        buffer = BytesIO()
+        results[display_cols].head(10000).to_excel(buffer, index=False, engine="openpyxl")
+        st.download_button(t("export_excel"), data=buffer.getvalue(), file_name="hajj_card_tracking.xlsx",
+                           mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", use_container_width=True)
