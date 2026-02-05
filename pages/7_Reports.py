@@ -82,8 +82,7 @@ if st.button(t("generate_report"), type="primary"):
         has_prov = df["card_at_provider_date"].notna()
         not_recv = df["card_received"] == False
         overdue = df[has_prov & not_recv].copy()
-        overdue["provider_date"] = pd.to_datetime(overdue["card_at_provider_date"])
-        overdue["days_overdue"] = (as_of - overdue["provider_date"]).dt.days
+        overdue["days_overdue"] = (as_of - overdue["card_at_provider_date"]).dt.days
         overdue = overdue[overdue["days_overdue"] > 7].sort_values("days_overdue", ascending=False)
         st.markdown(f"**{'بطاقات متأخرة (أكثر من 7 أيام)' if lang == 'ar' else 'Overdue Cards (>7 days)'}**: {len(overdue):,}")
         st.dataframe(overdue[["person_id", "first_name", "last_name", "nationality", "service_provider", "days_overdue"]].head(200),
@@ -91,7 +90,7 @@ if st.button(t("generate_report"), type="primary"):
     elif report_type == t("provider_report"):
         st.dataframe(compute_provider_metrics(df, as_of_date), use_container_width=True, hide_index=True)
     elif report_type == t("health_report"):
-        health_mask = (df["health_status"] != "none") & (pd.to_datetime(df["health_date"], errors="coerce") <= as_of)
+        health_mask = (df["health_status"] != "none") & (df["health_date"] <= as_of)
         st.dataframe(df[health_mask][["person_id", "first_name", "last_name", "nationality", "age", "health_status", "health_date", "health_notes"]].sort_values("health_date", ascending=False).head(500),
             use_container_width=True, hide_index=True)
 
@@ -101,13 +100,14 @@ st.subheader("💾 " + t("export_data"))
 
 col_e1, col_e2 = st.columns(2)
 with col_e1:
-    csv_data = df.to_csv(index=False).encode("utf-8-sig")
-    st.download_button(f"📥 {t('export_csv')} ({('كامل' if lang == 'ar' else 'Full')})",
+    # Limit full export to 50K rows to avoid memory issues on Cloud
+    csv_data = df.head(50000).to_csv(index=False).encode("utf-8-sig")
+    st.download_button(f"📥 {t('export_csv')} ({('كامل' if lang == 'ar' else 'Full')} - 50K)",
         data=csv_data, file_name="hajj_nusuk_full.csv", mime="text/csv", use_container_width=True)
 
 with col_e2:
     as_of = pd.Timestamp(as_of_date)
-    filtered = df[pd.to_datetime(df["visa_issue_date"], errors="coerce") <= as_of]
+    filtered = df[df["visa_issue_date"] <= as_of]
     buffer = BytesIO()
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         filtered.head(50000).to_excel(writer, index=False, sheet_name="Data")

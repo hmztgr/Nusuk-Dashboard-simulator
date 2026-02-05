@@ -40,7 +40,7 @@ st.divider()
 st.subheader(t("family_patterns"))
 
 as_of = pd.Timestamp(as_of_date)
-visa_mask = pd.to_datetime(df["visa_issue_date"], errors="coerce") <= as_of
+visa_mask = df["visa_issue_date"] <= as_of
 pilgrims = df[visa_mask & df["person_type"].isin(["pilgrim_external", "pilgrim_internal"])]
 
 total = len(pilgrims)

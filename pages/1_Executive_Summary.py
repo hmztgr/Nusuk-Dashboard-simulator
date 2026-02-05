@@ -20,8 +20,8 @@ if df is None:
 
 as_of_date = filters.get("as_of_date")
 
-# Apply filters
-filtered_df = df.copy()
+# Apply filters (no .copy() needed — filtering creates new DataFrames)
+filtered_df = df
 if filters.get("person_types"):
     filtered_df = filtered_df[filtered_df["person_type"].isin(filters["person_types"])]
 if filters.get("nationalities"):

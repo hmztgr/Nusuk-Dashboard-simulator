@@ -118,7 +118,7 @@ def pipeline_funnel_chart(metrics, title=None):
 def nationality_bar_chart(df, as_of_date, top_n=10, title=None):
     """Horizontal bar chart of top nationalities."""
     as_of = pd.Timestamp(as_of_date)
-    visa_mask = pd.to_datetime(df["visa_issue_date"], errors="coerce") <= as_of
+    visa_mask = df["visa_issue_date"] <= as_of
     filtered = df[visa_mask]
 
     nat_counts = filtered["nationality"].value_counts().head(top_n)
@@ -157,7 +157,7 @@ def severity_pie_chart(df, as_of_date, title=None):
     as_of = pd.Timestamp(as_of_date)
     health_mask = (
         (df["health_status"] != "none") &
-        (pd.to_datetime(df["health_date"], errors="coerce") <= as_of)
+        (df["health_date"] <= as_of)
     )
     health_df = df[health_mask]
 
@@ -181,7 +181,7 @@ def severity_pie_chart(df, as_of_date, title=None):
 def age_sex_pyramid(df, as_of_date, title=None):
     """Population pyramid by age and sex."""
     as_of = pd.Timestamp(as_of_date)
-    visa_mask = pd.to_datetime(df["visa_issue_date"], errors="coerce") <= as_of
+    visa_mask = df["visa_issue_date"] <= as_of
     filtered = df[visa_mask]
 
     if filtered.empty:
@@ -226,7 +226,7 @@ def world_map_chart(df, as_of_date, title=None):
     as_of = pd.Timestamp(as_of_date)
     ext_mask = (
         (df["person_type"] == "pilgrim_external") &
-        (pd.to_datetime(df["visa_issue_date"], errors="coerce") <= as_of)
+        (df["visa_issue_date"] <= as_of)
     )
     ext_df = df[ext_mask]
 
@@ -307,7 +307,7 @@ def provider_comparison_chart(provider_df, title=None):
 def b2b_b2c_nationality_chart(df, as_of_date, title=None):
     """Stacked bar chart of B2B/B2C by top nationalities."""
     as_of = pd.Timestamp(as_of_date)
-    visa_mask = pd.to_datetime(df["visa_issue_date"], errors="coerce") <= as_of
+    visa_mask = df["visa_issue_date"] <= as_of
     filtered = df[visa_mask]
 
     if filtered.empty:

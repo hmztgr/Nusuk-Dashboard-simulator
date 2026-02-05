@@ -56,11 +56,10 @@ with st.expander(t("advanced_filters"), expanded=False):
             key="track_provider")
 
 # ── Apply Filters ──────────────────────────────────────────────────────────
-results = df.copy()
-
-# Timeline filter
 as_of = pd.Timestamp(as_of_date)
-results = results[pd.to_datetime(results["visa_issue_date"], errors="coerce") <= as_of]
+
+# Timeline filter (no .copy() needed — filtering creates new DataFrames)
+results = df[df["visa_issue_date"] <= as_of]
 
 # Search (all columns are already string from app.py load_data)
 if search_query:
@@ -182,7 +181,7 @@ st.divider()
 col_exp1, col_exp2, _ = st.columns([1, 1, 3])
 
 with col_exp1:
-    csv_data = results[display_cols].to_csv(index=False).encode("utf-8-sig")
+    csv_data = results[display_cols].head(50000).to_csv(index=False).encode("utf-8-sig")
     st.download_button(t("export_csv"), data=csv_data, file_name="hajj_card_tracking.csv", mime="text/csv", use_container_width=True)
 
 with col_exp2:

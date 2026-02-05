@@ -5,7 +5,6 @@ All pipeline metrics are calculated by filtering date columns <= as_of_date.
 
 import pandas as pd
 import numpy as np
-from datetime import datetime
 
 
 def compute_metrics(df, as_of_date, person_type_filter=None, nationality_filter=None, provider_filter=None):
@@ -22,8 +21,8 @@ def compute_metrics(df, as_of_date, person_type_filter=None, nationality_filter=
     Returns:
         dict with all computed metrics
     """
-    # Apply filters
-    filtered = df.copy()
+    # Apply filters (no .copy() needed — we only read, never mutate)
+    filtered = df
 
     if person_type_filter and len(person_type_filter) > 0:
         filtered = filtered[filtered["person_type"].isin(person_type_filter)]
@@ -41,36 +40,39 @@ def compute_metrics(df, as_of_date, person_type_filter=None, nationality_filter=
     # Convert date for comparison
     as_of = pd.Timestamp(as_of_date)
 
+    # Date columns are already datetime64 from load_data(), so compare directly.
+    # NaT comparisons safely return False.
+
     # ── Visa / Permits ─────────────────────────────────────────────────
-    visa_mask = pd.to_datetime(filtered["visa_issue_date"], errors="coerce") <= as_of
+    visa_mask = filtered["visa_issue_date"] <= as_of
     total_visas = visa_mask.sum()
 
     # ── Groups Formed ──────────────────────────────────────────────────
-    group_mask = pd.to_datetime(filtered["group_formation_date"], errors="coerce") <= as_of
+    group_mask = filtered["group_formation_date"] <= as_of
     groups_formed = group_mask.sum()
 
     # ── Arrivals ───────────────────────────────────────────────────────
-    arrival_mask = pd.to_datetime(filtered["arrival_date"], errors="coerce") <= as_of
+    arrival_mask = filtered["arrival_date"] <= as_of
     total_arrivals = arrival_mask.sum()
     arrival_pct = total_arrivals / max(total_visas, 1) * 100
 
     # ── Card Pipeline ──────────────────────────────────────────────────
-    printed_mask = pd.to_datetime(filtered["card_printed_date"], errors="coerce") <= as_of
+    printed_mask = filtered["card_printed_date"] <= as_of
     cards_printed = printed_mask.sum()
 
-    center_mask = pd.to_datetime(filtered["card_at_center_date"], errors="coerce") <= as_of
+    center_mask = filtered["card_at_center_date"] <= as_of
     cards_at_center = center_mask.sum()
 
-    provider_mask = pd.to_datetime(filtered["card_at_provider_date"], errors="coerce") <= as_of
+    provider_mask = filtered["card_at_provider_date"] <= as_of
     cards_at_provider = provider_mask.sum()
 
-    received_mask = pd.to_datetime(filtered["card_received_date"], errors="coerce") <= as_of
+    received_mask = filtered["card_received_date"] <= as_of
     cards_received = received_mask.sum()
 
-    activated_mask = pd.to_datetime(filtered["card_activation_date"], errors="coerce") <= as_of
+    activated_mask = filtered["card_activation_date"] <= as_of
     cards_activated = activated_mask.sum()
 
-    proof_mask = pd.to_datetime(filtered["proof_picture_date"], errors="coerce") <= as_of
+    proof_mask = filtered["proof_picture_date"] <= as_of
     proof_pictures = proof_mask.sum()
 
     # Cards at provider but NOT delivered to pilgrims
@@ -87,22 +89,22 @@ def compute_metrics(df, as_of_date, person_type_filter=None, nationality_filter=
     # ── Health ─────────────────────────────────────────────────────────
     health_mask = (
         (filtered["health_status"] != "none") &
-        (pd.to_datetime(filtered["health_date"], errors="coerce") <= as_of)
+        (filtered["health_date"] <= as_of)
     )
     health_incidents = health_mask.sum()
 
     death_mask = (
         (filtered["death_status"] == True) &
-        (pd.to_datetime(filtered["death_date"], errors="coerce") <= as_of)
+        (filtered["death_date"] <= as_of)
     )
     deaths = death_mask.sum()
 
     # ── Daily arrivals for chart ───────────────────────────────────────
-    arrival_dates = pd.to_datetime(filtered.loc[arrival_mask, "arrival_date"], errors="coerce")
+    arrival_dates = filtered.loc[arrival_mask, "arrival_date"]
     daily_arrivals = arrival_dates.dt.date.value_counts().sort_index()
 
     # ── Daily health incidents ─────────────────────────────────────────
-    health_dates = pd.to_datetime(filtered.loc[health_mask, "health_date"], errors="coerce")
+    health_dates = filtered.loc[health_mask, "health_date"]
     daily_health = health_dates.dt.date.value_counts().sort_index()
 
     return {
@@ -153,9 +155,9 @@ def compute_provider_metrics(df, as_of_date):
         if n == 0:
             continue
 
-        at_provider = (pd.to_datetime(prov_df["card_at_provider_date"], errors="coerce") <= as_of).sum()
-        received = (pd.to_datetime(prov_df["card_received_date"], errors="coerce") <= as_of).sum()
-        activated = (pd.to_datetime(prov_df["card_activation_date"], errors="coerce") <= as_of).sum()
+        at_provider = (prov_df["card_at_provider_date"] <= as_of).sum()
+        received = (prov_df["card_received_date"] <= as_of).sum()
+        activated = (prov_df["card_activation_date"] <= as_of).sum()
 
         delivery_rate = received / max(at_provider, 1) * 100
 
@@ -170,7 +172,7 @@ def compute_provider_metrics(df, as_of_date):
 
         health_count = (
             (prov_df["health_status"] != "none") &
-            (pd.to_datetime(prov_df["health_date"], errors="coerce") <= as_of)
+            (prov_df["health_date"] <= as_of)
         ).sum()
 
         rows.append({

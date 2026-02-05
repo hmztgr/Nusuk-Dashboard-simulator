@@ -46,9 +46,6 @@ SHARED_CSS = """
     [data-testid="stMetricValue"] { font-size: 28px !important; color: #4A3728 !important; font-weight: bold !important; }
 
     /* Sidebar - force readable colors regardless of theme */
-    section[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #FAF6F0, #F0E6D4) !important;
-    }
     section[data-testid="stSidebar"] label,
     section[data-testid="stSidebar"] .stMarkdown p,
     section[data-testid="stSidebar"] .stMarkdown span,
@@ -152,7 +149,7 @@ st.markdown(SHARED_CSS, unsafe_allow_html=True)
 st.markdown(RTL_EXTRA if lang == "ar" else LTR_EXTRA, unsafe_allow_html=True)
 
 # ── Data Loading ───────────────────────────────────────────────────────────
-@st.cache_data
+@st.cache_resource
 def load_data():
     data_dir = os.path.join(os.path.dirname(__file__), "data")
     gz_path = os.path.join(data_dir, "hajj_data.csv.gz")
@@ -183,7 +180,7 @@ def load_data():
     ]
     for col in bool_cols:
         if col in df.columns:
-            df[col] = df[col].astype(bool)
+            df[col] = df[col].fillna(False).astype(bool)
     # Ensure string columns for search
     for col in ["id_number", "passport_number", "nusuk_number", "first_name", "last_name"]:
         if col in df.columns:

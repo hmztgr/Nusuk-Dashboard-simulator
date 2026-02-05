@@ -21,9 +21,9 @@ st.markdown(f'<div class="nusuk-header"><h2>{t("page_health_safety")}</h2></div>
 
 # ── Filter health data ────────────────────────────────────────────────────
 as_of = pd.Timestamp(as_of_date)
-health_mask = (df["health_status"] != "none") & (pd.to_datetime(df["health_date"], errors="coerce") <= as_of)
+health_mask = (df["health_status"] != "none") & (df["health_date"] <= as_of)
 health_df = df[health_mask]
-death_mask = (df["death_status"] == True) & (pd.to_datetime(df["death_date"], errors="coerce") <= as_of)
+death_mask = (df["death_status"] == True) & (df["death_date"] <= as_of)
 
 # ── KPIs ───────────────────────────────────────────────────────────────────
 col1, col2, col3, col4 = st.columns(4)
