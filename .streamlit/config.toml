@@ -1,0 +1,9 @@
+[theme]
+primaryColor = "#B8860B"          # Dark goldenrod - Nusuk gold accent
+backgroundColor = "#FAF6F0"       # Warm cream background
+secondaryBackgroundColor = "#F0E6D4"  # Light tan/cream for cards
+textColor = "#4A3728"             # Dark brown text
+font = "sans serif"
+
+[server]
+maxUploadSize = 200
